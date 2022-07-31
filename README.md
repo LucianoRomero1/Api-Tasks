@@ -18,3 +18,9 @@
   - Para generar las entidades usa el siguiente comando:
     php bin/console doctrine:generate:entities BackendBundle
     Con esto, crea todas las entidades que se mapearon previamente con el comando de arriba
+
+- Crear un servicio nuevo:
+  - Crear una carpeta SERVICES dentro del Bundle deseado.
+  - Crear un archivo como se lo desee llamar, en este caso será Helpers (por ahora vacío).
+  - Luego vamos al services.yml dentro de la carpeta config del proyecto y debajo de todo agregamos el nuevo servicio
+  - Volvemos a la clase Helpers (asi se llama nuestro servicio en este caso) y creamos un constructor recibiendo el o los parametros que se envíen desde la línea "arguments" en el archivo services.yml. Por ejemplo en el caso de ahora, se envía el entityManager y se recibe como parámetro.
