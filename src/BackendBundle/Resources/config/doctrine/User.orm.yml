@@ -1,0 +1,55 @@
+BackendBundle\Entity\User:
+    type: entity
+    table: users
+    id:
+        id:
+            type: integer
+            nullable: false
+            options:
+                unsigned: false
+            id: true
+            generator:
+                strategy: IDENTITY
+    fields:
+        role:
+            type: string
+            nullable: true
+            length: 20
+            options:
+                fixed: false
+                default: 'NULL'
+        name:
+            type: string
+            nullable: true
+            length: 180
+            options:
+                fixed: false
+                default: 'NULL'
+        surname:
+            type: string
+            nullable: true
+            length: 255
+            options:
+                fixed: false
+                default: 'NULL'
+        email:
+            type: string
+            nullable: true
+            length: 255
+            options:
+                fixed: false
+                default: 'NULL'
+        password:
+            type: string
+            nullable: true
+            length: 255
+            options:
+                fixed: false
+                default: 'NULL'
+        createdAt:
+            type: datetime
+            nullable: true
+            options:
+                default: 'NULL'
+            column: created_at
+    lifecycleCallbacks: {  }
