@@ -49,6 +49,9 @@ class DefaultController extends Controller
             $emailConstraint->message = "This email is not valid";
             $validateEmail  = $this->get('validator')->validate($email, $emailConstraint);
 
+            //Cifrar password
+            $pwd            =  hash('sha256', $password);
+
             //count = 0 significa que todo estuvo bien
             if($email != null && count($validateEmail) == 0 && $password != null){
 
@@ -56,9 +59,9 @@ class DefaultController extends Controller
 
                 //Sino especifico el hash, devuelvo el token, sino devuelvo la data del user logueado
                 if($getHash == null || !$getHash){
-                    $signup     = $jwt_auth->signup($email, $password);
+                    $signup     = $jwt_auth->signup($email, $pwd);
                 }else{
-                    $signup     = $jwt_auth->signup($email, $password, true);
+                    $signup     = $jwt_auth->signup($email, $pwd, true);
                 }
                 
                 
