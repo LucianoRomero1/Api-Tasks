@@ -1,0 +1,10 @@
+user_register:
+    path: /register
+    defaults: { _controller: "AppBundle:User:register" }
+    methods: POST
+
+user_edit:
+    path: /edit
+    defaults: { _controller: "AppBundle:User:edit" }
+    methods: POST
+    #Deberia ser put pero genera muchos problemas CORS por ejemplo
