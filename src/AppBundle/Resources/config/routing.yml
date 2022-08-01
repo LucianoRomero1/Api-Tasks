@@ -1,3 +1,11 @@
+# En este archivo se cargan los ficheros que están dentro de la carpeta routing
+# Esos archivos sirven para hacerle los routes y definirle los path a las funciones de los controladores
+# prefix es la pre ruta que pongo en la url , ejemplo ../user/register
+
 app_default:
     resource: "@AppBundle/Resources/config/routing/default.yml"
     prefix: /
+
+app_user:
+    resource: "@AppBundle/Resources/config/routing/user.yml"
+    prefix: /user
