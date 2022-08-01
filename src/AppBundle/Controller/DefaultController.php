@@ -3,8 +3,8 @@
 namespace AppBundle\Controller;
 
 use AppBundle\Services\Helpers;
+use AppBundle\Services\JwtAuth;
 
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -30,7 +30,7 @@ class DefaultController extends Controller
         //Array a devolver por defecto
         $data       = array(
             'status'    => 'error',
-            'data'      => 'Send json via post'
+            'data'      => 'Parameters do not exist'
         );
 
         if($json != null){
@@ -42,6 +42,7 @@ class DefaultController extends Controller
             //Valido con ternarios que la data no sea null
             $email          = (isset($params->email)) ? $params->email : null;
             $password       = (isset($params->password)) ? $params->password : null;
+            $getHash        = (isset($params->getHash)) ? $params->getHash : null;
 
             //Validar el email con Assert y Validator
             $emailConstraint= new Assert\Email();
@@ -49,12 +50,19 @@ class DefaultController extends Controller
             $validateEmail  = $this->get('validator')->validate($email, $emailConstraint);
 
             //count = 0 significa que todo estuvo bien
-            if(count($validateEmail) == 0 && $password != null){
+            if($email != null && count($validateEmail) == 0 && $password != null){
+
+                $jwt_auth   = $this->get(JwtAuth::class);
+
+                //Sino especifico el hash, devuelvo el token, sino devuelvo la data del user logueado
+                if($getHash == null || !$getHash){
+                    $signup     = $jwt_auth->signup($email, $password);
+                }else{
+                    $signup     = $jwt_auth->signup($email, $password, true);
+                }
                 
-                $data       = array(
-                    'status'    => 'success',
-                    'data'      => 'Login success'
-                );
+                
+                return $this->json($signup);
             }else{
 
                 $data       = array(
@@ -70,28 +78,30 @@ class DefaultController extends Controller
     }
     
     
-    public function testAction(){
-        $entityManager  = $this->getDoctrine()->getManager();
-        $userRepo       = $entityManager->getRepository("BackendBundle:User");
-        $users          = $userRepo->findAll();
-        $taskRepo       = $entityManager->getRepository("BackendBundle:Task");
-        $tasks          = $taskRepo->findAll();
+    public function testAction(Request $request){
 
+        $token          = $request->get("authorization", null);
         $helpers        = $this->get(Helpers::class);
+        $jwt_auth       = $this->get(JwtAuth::class);
 
-        $array_response = array(
-            "status"    => "success",
-            "data"      => $tasks
-        );
+        //Ademas de recibir el token, hay que comprobar que el token sea valido
+        if($token && $jwt_auth->validateToken($token)){
+            $entityManager  = $this->getDoctrine()->getManager();
+            $userRepo       = $entityManager->getRepository("BackendBundle:User");
+            $users          = $userRepo->findAll();
+    
+            $array_response = array(
+                'status'    => 'success',
+                'data'      => $users
+            );
+        }else{
+            $array_response = array(
+                'status'    => 'error',
+                'code'      => 400,
+                'data'      => 'Authorization not valid'
+            );
+        }
 
         return $helpers->json($array_response);
-        // echo $helpers->json($users);
-        // die;
-
-        // return $this->json(array(
-        //     "status"    => "success",
-        //     "users"     => $users 
-        // ));
-
     }
 }
