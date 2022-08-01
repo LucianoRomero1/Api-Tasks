@@ -11,7 +11,7 @@ class JwtAuth {
 
     public function __construct($manager){
         $this->manager  = $manager;
-        $this->key      = "imthesecretkey123";
+        $this->key      = "im*the*secret*key*123*";
     }
 
     public function signup($email, $password, $getHash = null){
