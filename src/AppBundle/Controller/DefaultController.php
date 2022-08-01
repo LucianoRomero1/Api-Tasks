@@ -24,15 +24,24 @@ class DefaultController extends Controller
         $entityManager  = $this->getDoctrine()->getManager();
         $userRepo       = $entityManager->getRepository("BackendBundle:User");
         $users          = $userRepo->findAll();
+        $taskRepo       = $entityManager->getRepository("BackendBundle:Task");
+        $tasks          = $taskRepo->findAll();
 
         $helpers        = $this->get(Helpers::class);
-        echo $helpers->helloWorld();
-        die;
 
-        return $this->json(array(
+        $array_response = array(
             "status"    => "success",
-            "users"     => $users 
-        ));
+            "data"      => $tasks
+        );
+
+        return $helpers->json($array_response);
+        // echo $helpers->json($users);
+        // die;
+
+        // return $this->json(array(
+        //     "status"    => "success",
+        //     "users"     => $users 
+        // ));
 
     }
 }

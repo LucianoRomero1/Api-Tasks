@@ -15,32 +15,32 @@ class User
     /**
      * @var string
      */
-    private $role = 'NULL';
+    private $role;
 
     /**
      * @var string
      */
-    private $name = 'NULL';
+    private $name;
 
     /**
      * @var string
      */
-    private $surname = 'NULL';
+    private $surname;
 
     /**
      * @var string
      */
-    private $email = 'NULL';
+    private $email;
 
     /**
      * @var string
      */
-    private $password = 'NULL';
+    private $password;
 
     /**
      * @var \DateTime
      */
-    private $createdAt = 'NULL';
+    private $createdAt;
 
 
     /**

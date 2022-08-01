@@ -15,27 +15,27 @@ class Task
     /**
      * @var string
      */
-    private $title = 'NULL';
+    private $title;
 
     /**
      * @var string
      */
-    private $description = 'NULL';
+    private $description;
 
     /**
      * @var string
      */
-    private $status = 'NULL';
+    private $status;
 
     /**
      * @var \DateTime
      */
-    private $createdAt = 'NULL';
+    private $createdAt;
 
     /**
      * @var \DateTime
      */
-    private $updatedAt = 'NULL';
+    private $updatedAt;
 
     /**
      * @var \BackendBundle\Entity\User
