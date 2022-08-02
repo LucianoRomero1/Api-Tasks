@@ -23,7 +23,7 @@ class UserController extends Controller{
         $data       = array(
             'status' => 'error',
             'code'   => 400,
-            'msg'    => 'User can not be created'
+            'msg'    => 'User can not be created, params failed'
         );
 
         if($json != null){
@@ -54,7 +54,7 @@ class UserController extends Controller{
                 //pwd es la pw ya hasheada
                 $user->setPassword($pwd);
 
-                $isset_user     = $entityManager->getRepository(User::class)->findOneBy([
+                $isset_user     = $entityManager->getRepository(User::class)->findBy([
                     "email" => $email
                 ]);
 
@@ -100,7 +100,7 @@ class UserController extends Controller{
 
             //Conseguir los datos del user logueado
             //Al mandarle un true, nos devuelve un objeto osea el user decodificado
-            $identity       = $authCheck  = $jwt_auth->validateToken($token, true);
+            $identity       = $jwt_auth->validateToken($token, true);
 
             //get al user logueado
             $user           = $entityManager->getRepository(User::class)->find($identity->sub);
@@ -113,7 +113,7 @@ class UserController extends Controller{
             $data       = array(
                 'status' => 'error',
                 'code'   => 400,
-                'msg'    => 'User can not be updated'
+                'msg'    => 'User can not be updated, params failed'
             );
 
             if($json != null){
@@ -144,9 +144,7 @@ class UserController extends Controller{
                         $user->setPassword($pwd);
                     }
                     
-                
-
-                    $isset_user     = $entityManager->getRepository(User::class)->findOneBy([
+                    $isset_user     = $entityManager->getRepository(User::class)->findBy([
                         "email" => $email
                     ]);
     
