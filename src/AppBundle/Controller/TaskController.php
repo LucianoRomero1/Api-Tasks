@@ -20,12 +20,6 @@ class TaskController extends Controller{
         $token      = $request->get('authorization', null);
         $authCheck  = $jwt_auth->validateToken($token);
 
-        $data       = array(
-            'status' => 'error',
-            'code'   => 400,
-            'msg'    => 'Authorization not valid'
-        );
-
         if($authCheck){
             $identity   = $jwt_auth->validateToken($token, true);
             $json       = $request->get('json', null);
@@ -111,8 +105,98 @@ class TaskController extends Controller{
                     'msg'    => 'Task can not be created, params failed'
                 );
             }
+        }else{
+            $data       = array(
+                'status' => 'error',
+                'code'   => 400,
+                'msg'    => 'Authorization not valid'
+            );
         }
         ####
+
+        return $helpers->json($data);
+    }
+
+    public function tasksAction(Request $request){
+        $helpers    = $this->get(Helpers::class);
+        $jwt_auth   = $this->get(JwtAuth::class);       
+        
+        $token      = $request->get('authorization', null);
+        $authCheck  = $jwt_auth->validateToken($token);
+
+        if($authCheck){
+            $identity           = $jwt_auth->validateToken($token, true);
+
+            $em                 = $this->getDoctrine()->getManager();
+
+            $dql                = "SELECT t FROM BackendBundle:Task t ORDER BY t.id DESC";
+            $query              = $em->createQuery($dql);
+
+            //Junta los         parámetros GET de la URL
+            $page               = $request->query->getInt('page', 1);
+            $paginator          = $this->get('knp_paginator');
+            $items_per_page     = 10;
+
+            $pagination         = $paginator->paginate($query, $page, $items_per_page);
+            $total_items_count  = $pagination->getTotalItemCount();
+
+            $data               = array(
+                'status'                    => 'success',
+                'code'                      => 200,
+                'msg'                       => 'Ok',
+                'total_items_count'         => $total_items_count,
+                'actual_page'               => $page,
+                'items_per_page'            => $items_per_page,
+                //ceil para redondear. divide el total de elementos por el total por pagina
+                'total_pages'               => ceil($total_items_count / $items_per_page),
+                'data'                      => $pagination
+            );
+        }else{
+            $data       = array(
+                'status' => 'error',
+                'code'   => 400,
+                'msg'    => 'Authorization not valid'
+            );
+        }
+
+        return $helpers->json($data);
+    }
+
+    public function taskAction(Request $request, $id = null){
+        $helpers    = $this->get(Helpers::class);
+        $jwt_auth   = $this->get(JwtAuth::class);
+
+        $token      = $request->get('authorization', null);
+        $authCheck  = $jwt_auth->validateToken($token);
+
+        if($authCheck){
+            $identity   = $jwt_auth->validateToken($token, true);
+
+            $em         = $this->getDoctrine()->getManager();
+            $task       = $em->getRepository(Task::class)->find($id);
+            //Solo mostrarle las tareas al dueño de las tareas
+            if($task && is_object($task) && $identity->sub == $task->getUser()->getId()){
+
+                $data       = array(
+                    'status' => 'success',
+                    'code'   => 200,
+                    'data'   => $task
+                );
+            }else{
+                $data       = array(
+                    'status' => 'error',
+                    'code'   => 404,
+                    'msg'    => 'Task not found'
+                );
+            }
+
+        }else{
+            $data       = array(
+                'status' => 'error',
+                'code'   => 400,
+                'msg'    => 'Authorization not valid'
+            );
+        }
 
         return $helpers->json($data);
     }
