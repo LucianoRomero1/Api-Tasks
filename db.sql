@@ -1,5 +1,5 @@
-CREATE DATABASE IF NOT EXISTS api_symfony_angular;
-USE api_symfony_angular;
+CREATE DATABASE IF NOT EXISTS api_symfony3;
+USE api_symfony3;
 
 CREATE TABLE users(
 	id 			int(255) auto_increment not null,
