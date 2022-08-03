@@ -200,4 +200,127 @@ class TaskController extends Controller{
 
         return $helpers->json($data);
     }
+
+    public function searchAction(Request $request, $search = null){
+        $helpers    = $this->get(Helpers::class);
+        $jwt_auth   = $this->get(JwtAuth::class);
+
+        $token      = $request->get('authorization', null);
+        $authCheck  = $jwt_auth->validateToken($token);
+
+        if($authCheck){
+            $identity   = $jwt_auth->validateToken($token, true);
+            $em         = $this->getDoctrine()->getManager();
+
+            //Filtro
+            $filter     = $request->get('filter', null);
+            if(!empty($filter)){
+                if($filter == 1){
+                    $filter = 'new';
+                }elseif($filter == 2){
+                    $filter = 'todo';
+                }else{
+                    $filter = 'done';
+                }
+            } 
+
+            //Orden
+            $order      = $request->get('order', null);
+            if(empty($order) || $order == 2){
+                $order  = 'DESC';
+            }else{
+                $order  = 'ASC';
+            }
+
+            //Busqueda
+            if($search != null){
+                $dql    = "SELECT t FROM BackendBundle:Task t "
+                        . "WHERE t.user = $identity->sub AND "
+                        . "(t.title LIKE :search OR t.description LIKE :search)";
+            }else{
+                $dql    = "SELECT t FROM BackendBundle:Task t WHERE t.user = $identity->sub";
+            }
+
+            //Set filter
+            if($filter != null){
+                //El .= es para concatenarle a lo que ya estaba en el string
+                $dql.= "AND t.status = :filter";
+            }
+
+            //Set order
+            $dql.= " ORDER BY t.id $order";
+
+            $query = $em->createQuery($dql);
+
+            if(!empty($filter)){
+                $query->setParameter('filter', $filter);
+            }
+            
+            if(!empty($search)){
+                //Los % son para que te coincida con los substring dentro de la palabra
+                $query->setParameter('search', "%$search%");
+            }
+
+            $tasks = $query->getResult();
+
+            $data       = array(
+                'status' => 'success',
+                'code'   => 200,
+                'data'    => $tasks
+            );
+
+
+        }else{
+            $data       = array(
+                'status' => 'error',
+                'code'   => 400,
+                'msg'    => 'Authorization not valid'
+            );
+        }
+
+        return $helpers->json($data);
+    }
+
+    public function deleteAction(Request $request, $id = null){
+        $helpers    = $this->get(Helpers::class);
+        $jwt_auth   = $this->get(JwtAuth::class);
+
+        $token      = $request->get('authorization', null);
+        $authCheck  = $jwt_auth->validateToken($token);
+
+        if($authCheck){
+            $identity   = $jwt_auth->validateToken($token, true);
+
+            $em         = $this->getDoctrine()->getManager();
+            $task       = $em->getRepository(Task::class)->find($id);
+            //Solo mostrarle las tareas al dueño de las tareas
+            if($task && is_object($task) && $identity->sub == $task->getUser()->getId()){
+
+                $em->remove($task);
+                $em->flush();
+
+                $data       = array(
+                    'status' => 'success',
+                    'code'   => 200,
+                    'msg'    => 'Task deleted successfully',
+                    'data'   => $task
+                );
+            }else{
+                $data       = array(
+                    'status' => 'error',
+                    'code'   => 404,
+                    'msg'    => 'Task not found'
+                );
+            }
+
+        }else{
+            $data       = array(
+                'status' => 'error',
+                'code'   => 400,
+                'msg'    => 'Authorization not valid'
+            );
+        }
+
+        return $helpers->json($data);
+    }   
 }
