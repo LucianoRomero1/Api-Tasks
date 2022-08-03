@@ -161,4 +161,43 @@ class TaskController extends Controller{
 
         return $helpers->json($data);
     }
+
+    public function taskAction(Request $request, $id = null){
+        $helpers    = $this->get(Helpers::class);
+        $jwt_auth   = $this->get(JwtAuth::class);
+
+        $token      = $request->get('authorization', null);
+        $authCheck  = $jwt_auth->validateToken($token);
+
+        if($authCheck){
+            $identity   = $jwt_auth->validateToken($token, true);
+
+            $em         = $this->getDoctrine()->getManager();
+            $task       = $em->getRepository(Task::class)->find($id);
+            //Solo mostrarle las tareas al dueño de las tareas
+            if($task && is_object($task) && $identity->sub == $task->getUser()->getId()){
+
+                $data       = array(
+                    'status' => 'success',
+                    'code'   => 200,
+                    'data'   => $task
+                );
+            }else{
+                $data       = array(
+                    'status' => 'error',
+                    'code'   => 404,
+                    'msg'    => 'Task not found'
+                );
+            }
+
+        }else{
+            $data       = array(
+                'status' => 'error',
+                'code'   => 400,
+                'msg'    => 'Authorization not valid'
+            );
+        }
+
+        return $helpers->json($data);
+    }
 }
