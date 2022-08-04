@@ -19,11 +19,16 @@ class JwtAuth {
         $data   = array();
 
         $user   = $this->manager->getRepository("BackendBundle:User")->findOneBy([
-            "email"=>$email, "password"=>$password
+            "email"=>$email, 
+            "password"=>$password
         ]);
 
+        $signup = false;
         if(is_object($user)){
+            $signup = true;
+        }
 
+        if ($signup) {
             //Generar jwt
             //iat es un indice asociado a la fecha creada
             //exp es la fecha de expiración del token sumado una semana, es decir se caduca cada semana
@@ -47,11 +52,10 @@ class JwtAuth {
                 $decoded    = JWT::decode($jwt, $this->key, array("HS256"));
                 $data       = $decoded;
             }
-
         }else{
             $data = array(
                 'status'    => 'error',
-                'data'      => 'Login failed'
+                'msg'      => 'Login failed'
             );
         }
 
