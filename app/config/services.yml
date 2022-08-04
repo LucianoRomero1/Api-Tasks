@@ -42,3 +42,13 @@ services:
         public: true
         arguments: 
             $manager: "@doctrine.orm.entity_manager"
+    
+    AppBundle\Handlers\DefaultHandler:
+        public: true
+        arguments: 
+            $manager: "@doctrine.orm.entity_manager"
+    
+    AppBundle\Handlers\UserHandler:
+        public: true
+        arguments: 
+            $manager: "@doctrine.orm.entity_manager"
