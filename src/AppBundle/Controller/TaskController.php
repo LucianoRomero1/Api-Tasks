@@ -21,12 +21,6 @@ class TaskController extends Controller{
         $token      = $request->get('authorization', null);
         $authCheck  = $jwt_auth->validateToken($token);
 
-        $data       = array(
-            'status' => 'error',
-            'code'   => 400,
-            'msg'    => 'Authorization not valid'
-        );
-
         if($authCheck){
             $identity   = $jwt_auth->validateToken($token, true);
             $json       = $request->get('json', null);
@@ -55,6 +49,12 @@ class TaskController extends Controller{
                     'msg'    => 'Task can not be created, params failed'
                 );
             }
+        }else{
+            $data       = array(
+                'status' => 'error',
+                'code'   => 400,
+                'msg'    => 'Authorization not valid'
+            );
         }
 
         return $helpers->json($data);
@@ -67,15 +67,15 @@ class TaskController extends Controller{
         $token      = $request->get('authorization', null);
         $authCheck  = $jwt_auth->validateToken($token);
 
-        $data       = array(
-            'status' => 'error',
-            'code'   => 400,
-            'msg'    => 'Authorization not valid'
-        );
-
         if($authCheck){
             $handler    = $this->get(TaskHandler::class);
             $data               = $handler->listTasks($jwt_auth, $token, $request);
+        }else{
+            $data       = array(
+                'status' => 'error',
+                'code'   => 400,
+                'msg'    => 'Authorization not valid'
+            );
         }
 
         return $helpers->json($data);
@@ -88,15 +88,15 @@ class TaskController extends Controller{
         $token      = $request->get('authorization', null);
         $authCheck  = $jwt_auth->validateToken($token);
 
-        $data       = array(
-            'status' => 'error',
-            'code'   => 400,
-            'msg'    => 'Authorization not valid'
-        );
-
         if($authCheck){
             $handler    = $this->get(TaskHandler::class);
             $data               = $handler->detailTask($jwt_auth, $token, $id); 
+        }else{
+            $data       = array(
+                'status' => 'error',
+                'code'   => 400,
+                'msg'    => 'Authorization not valid'
+            );
         }
 
         return $helpers->json($data);
@@ -108,12 +108,6 @@ class TaskController extends Controller{
 
         $token      = $request->get('authorization', null);
         $authCheck  = $jwt_auth->validateToken($token);
-
-        $data       = array(
-            'status' => 'error',
-            'code'   => 400,
-            'msg'    => 'Authorization not valid'
-        );
 
         if($authCheck){
             $identity   = $jwt_auth->validateToken($token, true);
@@ -128,6 +122,12 @@ class TaskController extends Controller{
 
             $data       = $handler->searchTask($dql, $filter, $search);
 
+        }else{
+            $data       = array(
+                'status' => 'error',
+                'code'   => 400,
+                'msg'    => 'Authorization not valid'
+            );
         }
 
         return $helpers->json($data);
@@ -140,15 +140,15 @@ class TaskController extends Controller{
         $token      = $request->get('authorization', null);
         $authCheck  = $jwt_auth->validateToken($token);
 
-        $data       = array(
-            'status' => 'error',
-            'code'   => 400,
-            'msg'    => 'Authorization not valid'
-        );
-
         if($authCheck){
             $handler = $this->get(TaskHandler::class);
             $data   = $handler->deleteTask($jwt_auth, $token, $id);
+        }else{
+            $data       = array(
+                'status' => 'error',
+                'code'   => 400,
+                'msg'    => 'Authorization not valid'
+            );
         }
 
         return $helpers->json($data);
