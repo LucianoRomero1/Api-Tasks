@@ -52,3 +52,9 @@ services:
         public: true
         arguments: 
             $manager: "@doctrine.orm.entity_manager"
+
+    AppBundle\Handlers\TaskHandler:
+        public: true
+        arguments: 
+            $manager: "@doctrine.orm.entity_manager"
+            $paginator: "@knp_paginator"

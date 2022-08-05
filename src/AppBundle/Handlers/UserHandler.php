@@ -35,8 +35,10 @@ class UserHandler extends Controller{
         }
     }
 
-    public function setUser($entityManager, $params, $identity = null, $user = null){
-        
+    public function setUser($params, $identity = null, $user = null){
+
+        $entityManager = $this->manager;
+
         $data           = array(
             'status' => 'error',
             'code'   => 400,

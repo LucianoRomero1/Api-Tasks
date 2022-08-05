@@ -33,7 +33,7 @@ class UserController extends Controller{
 
             if($handler->validateUserParams($params)){
                 //Si es true, seteo el user
-                $data = $handler->setUser($entityManager, $params);
+                $data = $handler->setUser($params);
             }
         }
 
@@ -73,7 +73,7 @@ class UserController extends Controller{
 
                 if($handler->validateUserParams($params)){
                     //Si es true, seteo el user
-                    $data = $handler->setUser($entityManager, $params, $identity, $user);
+                    $data = $handler->setUser($params, $identity, $user);
                 }
 
             }

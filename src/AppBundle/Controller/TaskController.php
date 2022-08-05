@@ -2,6 +2,7 @@
 
 namespace AppBundle\Controller;
 
+use AppBundle\Handlers\TaskHandler;
 use AppBundle\Services\Helpers;
 use AppBundle\Services\JwtAuth;
 use BackendBundle\Entity\Task;
@@ -20,76 +21,25 @@ class TaskController extends Controller{
         $token      = $request->get('authorization', null);
         $authCheck  = $jwt_auth->validateToken($token);
 
+        $data       = array(
+            'status' => 'error',
+            'code'   => 400,
+            'msg'    => 'Authorization not valid'
+        );
+
         if($authCheck){
             $identity   = $jwt_auth->validateToken($token, true);
             $json       = $request->get('json', null);
 
             if($json != null){
                 $params     = json_decode($json);
+                $handler    = $this->get(TaskHandler::class);
 
-                $createdAt  = new \DateTime("now");
-                $updatedAt  = new \DateTime("now");
-
-                //Identity sub es el id del user
-                $userId     = (isset($identity->sub) ? $identity->sub : null);
-                $title      = (isset($params->title) ? $params->title : null);
-                $description= (isset($params->description) ? $params->description : null);
-                $status     = (isset($params->status) ? $params->status : null);
-
-                if($userId != null && $title != null && $description != null && $status != null){
-                    $em     = $this->getDoctrine()->getManager();
-                    $user   = $em->getRepository(User::class)->find($userId);
-
+                if($handler->validateTask($params, $identity)){
                     if($id == null){
-                        $task   = new Task();
-                        $task->setUser($user);
-                        $task->setTitle($title);
-                        $task->setDescription($description);
-                        $task->setStatus($status);
-                        $task->setCreatedAt($createdAt);
-                        $task->setUpdatedAt($updatedAt);
-
-                        $data       = array(
-                            'status' => 'success',
-                            'code'   => 200,
-                            'msg'    => 'Task has been created',
-                            'data'   => $task
-                        );
-
-                        $em->persist($task);
-                        $em->flush();
+                        $data = $handler->setTask($params, $identity);
                     }else{
-                        $task = $em->getRepository(Task::class)->find($id);
-                        if($task != null){
-                            if(isset($identity->sub) && $identity->sub == $task->getUser()->getId()){
-                                $task->setTitle($title);
-                                $task->setDescription($description);
-                                $task->setStatus($status);
-                                $task->setUpdatedAt($updatedAt);
-
-                                $data       = array(
-                                    'status' => 'success',
-                                    'code'   => 200,
-                                    'msg'    => 'Task has been updated',
-                                    'data'   => $task
-                                );
-                                
-                                $em->persist($task);
-                                $em->flush();
-                            }else{
-                                $data   = array(
-                                    'status' => 'error',
-                                    'code'   => 400,
-                                    'msg'    => 'Task not updated, you not owner'
-                                );
-                            }
-                        }else{
-                            $data   = array(
-                                'status' => 'error',
-                                'code'   => 400,
-                                'msg'    => 'Task does not exist'
-                            );
-                        } 
+                        $data = $handler->setTask($params, $identity, $id);
                     }
                 }else{
                     $data   = array(
@@ -105,14 +55,7 @@ class TaskController extends Controller{
                     'msg'    => 'Task can not be created, params failed'
                 );
             }
-        }else{
-            $data       = array(
-                'status' => 'error',
-                'code'   => 400,
-                'msg'    => 'Authorization not valid'
-            );
         }
-        ####
 
         return $helpers->json($data);
     }
@@ -124,39 +67,15 @@ class TaskController extends Controller{
         $token      = $request->get('authorization', null);
         $authCheck  = $jwt_auth->validateToken($token);
 
+        $data       = array(
+            'status' => 'error',
+            'code'   => 400,
+            'msg'    => 'Authorization not valid'
+        );
+
         if($authCheck){
-            $identity           = $jwt_auth->validateToken($token, true);
-
-            $em                 = $this->getDoctrine()->getManager();
-
-            $dql                = "SELECT t FROM BackendBundle:Task t WHERE t.user = $identity->sub ORDER BY t.id DESC";
-            $query              = $em->createQuery($dql);
-
-            //Junta los         parámetros GET de la URL
-            $page               = $request->query->getInt('page', 1);
-            $paginator          = $this->get('knp_paginator');
-            $items_per_page     = 10;
-
-            $pagination         = $paginator->paginate($query, $page, $items_per_page);
-            $total_items_count  = $pagination->getTotalItemCount();
-
-            $data               = array(
-                'status'                    => 'success',
-                'code'                      => 200,
-                'msg'                       => 'Ok',
-                'total_items_count'         => $total_items_count,
-                'actual_page'               => $page,
-                'items_per_page'            => $items_per_page,
-                //ceil para redondear. divide el total de elementos por el total por pagina
-                'total_pages'               => ceil($total_items_count / $items_per_page),
-                'data'                      => $pagination
-            );
-        }else{
-            $data       = array(
-                'status' => 'error',
-                'code'   => 400,
-                'msg'    => 'Authorization not valid'
-            );
+            $handler    = $this->get(TaskHandler::class);
+            $data               = $handler->listTasks($jwt_auth, $token, $request);
         }
 
         return $helpers->json($data);
@@ -169,33 +88,15 @@ class TaskController extends Controller{
         $token      = $request->get('authorization', null);
         $authCheck  = $jwt_auth->validateToken($token);
 
+        $data       = array(
+            'status' => 'error',
+            'code'   => 400,
+            'msg'    => 'Authorization not valid'
+        );
+
         if($authCheck){
-            $identity   = $jwt_auth->validateToken($token, true);
-
-            $em         = $this->getDoctrine()->getManager();
-            $task       = $em->getRepository(Task::class)->find($id);
-            //Solo mostrarle las tareas al dueño de las tareas
-            if($task && is_object($task) && $identity->sub == $task->getUser()->getId()){
-
-                $data       = array(
-                    'status' => 'success',
-                    'code'   => 200,
-                    'data'   => $task
-                );
-            }else{
-                $data       = array(
-                    'status' => 'error',
-                    'code'   => 404,
-                    'msg'    => 'Task not found'
-                );
-            }
-
-        }else{
-            $data       = array(
-                'status' => 'error',
-                'code'   => 400,
-                'msg'    => 'Authorization not valid'
-            );
+            $handler    = $this->get(TaskHandler::class);
+            $data               = $handler->detailTask($jwt_auth, $token, $id); 
         }
 
         return $helpers->json($data);
@@ -208,74 +109,25 @@ class TaskController extends Controller{
         $token      = $request->get('authorization', null);
         $authCheck  = $jwt_auth->validateToken($token);
 
+        $data       = array(
+            'status' => 'error',
+            'code'   => 400,
+            'msg'    => 'Authorization not valid'
+        );
+
         if($authCheck){
             $identity   = $jwt_auth->validateToken($token, true);
-            $em         = $this->getDoctrine()->getManager();
 
-            //Filtro
-            $filter     = $request->get('filter', null);
-            if(!empty($filter)){
-                if($filter == 1){
-                    $filter = 'new';
-                }elseif($filter == 2){
-                    $filter = 'todo';
-                }else{
-                    $filter = 'done';
-                }
-            } 
-
-            //Orden
-            $order      = $request->get('order', null);
-            if(empty($order) || $order == 2){
-                $order  = 'DESC';
-            }else{
-                $order  = 'ASC';
-            }
-
-            //Busqueda
-            if($search != null){
-                $dql    = "SELECT t FROM BackendBundle:Task t "
-                        . "WHERE t.user = $identity->sub AND "
-                        . "(t.title LIKE :search OR t.description LIKE :search)";
-            }else{
-                $dql    = "SELECT t FROM BackendBundle:Task t WHERE t.user = $identity->sub";
-            }
-
-            //Set filter
-            if($filter != null){
-                //El .= es para concatenarle a lo que ya estaba en el string
-                $dql.= "AND t.status = :filter";
-            }
-
-            //Set order
-            $dql.= " ORDER BY t.id $order";
-
-            $query = $em->createQuery($dql);
-
-            if(!empty($filter)){
-                $query->setParameter('filter', $filter);
-            }
+            $handler    = $this->get(TaskHandler::class);
+            $filter     = $handler->getFilter($request);
+            $order      = $handler->getOrder($request);
+            $dql        = $handler->getDql($identity, $search);
             
-            if(!empty($search)){
-                //Los % son para que te coincida con los substring dentro de la palabra
-                $query->setParameter('search', "%$search%");
-            }
+            //Set Filter and Order
+            $dql        = $handler->setFilterAndOrder($dql, $filter, $order);
 
-            $tasks = $query->getResult();
+            $data       = $handler->searchTask($dql, $filter, $search);
 
-            $data       = array(
-                'status' => 'success',
-                'code'   => 200,
-                'data'    => $tasks
-            );
-
-
-        }else{
-            $data       = array(
-                'status' => 'error',
-                'code'   => 400,
-                'msg'    => 'Authorization not valid'
-            );
         }
 
         return $helpers->json($data);
@@ -288,37 +140,15 @@ class TaskController extends Controller{
         $token      = $request->get('authorization', null);
         $authCheck  = $jwt_auth->validateToken($token);
 
+        $data       = array(
+            'status' => 'error',
+            'code'   => 400,
+            'msg'    => 'Authorization not valid'
+        );
+
         if($authCheck){
-            $identity   = $jwt_auth->validateToken($token, true);
-
-            $em         = $this->getDoctrine()->getManager();
-            $task       = $em->getRepository(Task::class)->find($id);
-            //Solo mostrarle las tareas al dueño de las tareas
-            if($task && is_object($task) && $identity->sub == $task->getUser()->getId()){
-
-                $em->remove($task);
-                $em->flush();
-
-                $data       = array(
-                    'status' => 'success',
-                    'code'   => 200,
-                    'msg'    => 'Task deleted successfully',
-                    'data'   => $task
-                );
-            }else{
-                $data       = array(
-                    'status' => 'error',
-                    'code'   => 404,
-                    'msg'    => 'Task not found'
-                );
-            }
-
-        }else{
-            $data       = array(
-                'status' => 'error',
-                'code'   => 400,
-                'msg'    => 'Authorization not valid'
-            );
+            $handler = $this->get(TaskHandler::class);
+            $data   = $handler->deleteTask($jwt_auth, $token, $id);
         }
 
         return $helpers->json($data);
