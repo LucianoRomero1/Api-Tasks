@@ -15,18 +15,15 @@ class UserHandler extends Controller{
     }
 
     public function validateUserParams($params){
-        $validator      = Validation::createValidatorBuilder()->enableAnnotationMapping()->getValidator();
+        $validator          = Validation::createValidatorBuilder()->enableAnnotationMapping()->getValidator();
 
         $email              = (isset($params->email) ? $params->email : null);
-        $name               = (isset($params->name) ? $params->name : null);
-        $surname            = (isset($params->surname) ? $params->surname : null);
-        $password           = (isset($params->password) ? $params->password : null);
 
         $emailConstraint    = new Assert\Email();
         $emailConstraint->message = "This email is not valid";
         $validateEmail      = $validator->validate($email, $emailConstraint);
 
-        if($email != null && count($validateEmail) == 0 && $password != null && $name != null && $surname != null){
+        if($email != null && count($validateEmail) == 0){
             //Parámetros válidos
             return true;
         }else{
@@ -96,15 +93,25 @@ class UserHandler extends Controller{
     }
 
     public function editUser($user, $params){
+
+        $name               = (isset($params->name) ? $params->name : null);
+        $surname            = (isset($params->surname) ? $params->surname : null);
+        $password           = (isset($params->password) ? $params->password : null);
+
         $role = 'user';
         $user->setRole($role);
         $user->setEmail($params->email);
-        $user->setName($params->name);
-        $user->setSurname($params->surname);
-
-        $pwd = hash('sha256', $params->password);
-        $user->setPassword($pwd);
-
+        if($name != null){
+            $user->setName($name);
+        }
+        if($surname != null){
+            $user->setSurname($surname);
+        }
+        if($password != null){
+            $pwd = hash('sha256', $params->password);
+            $user->setPassword($pwd);
+        }
+        
         return $user;
     }
 }

@@ -49,8 +49,15 @@ class UserController extends Controller{
         $token      = $request->get('authorization', null);
         $authCheck  = $jwt_auth->validateToken($token);
 
+        $data       = array(
+            'status' => 'error',
+            'code'   => 400,
+            'msg'    => 'Authorization not valid'
+        );
+
         //Valida el token y si es correcto hago todo el edit
         if($authCheck){
+
             $entityManager  = $this->getDoctrine()->getManager();
             //Con un true devuelve el user decodificado
             $identity       = $jwt_auth->validateToken($token, true);
@@ -68,15 +75,16 @@ class UserController extends Controller{
                 if($handler->validateUserParams($params)){
                     //Si es true, seteo el user
                     $data = $handler->setUser($params, $identity, $user);
+                }else{
+                    $data = array(
+                        'status' => 'error',
+                        'code'   => 400,
+                        'msg'    => 'Invalid parameters'
+                    );
                 }
             }
-        }else{
-            $data       = array(
-                'status' => 'error',
-                'code'   => 400,
-                'msg'    => 'Authorization not valid'
-            );
         }
+
 
         return $helpers->json($data);
     }
