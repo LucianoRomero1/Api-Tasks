@@ -114,7 +114,7 @@ class TaskHandler extends Controller{
 
         $em                 = $this->manager;
 
-        $dql                = "SELECT t FROM BackendBundle:Task t WHERE t.user = $identity->sub ORDER BY t.id DESC";
+        $dql                = "SELECT t FROM BackendBundle:Task t WHERE t.user = $identity->sub ORDER BY t.status DESC";
         $query              = $em->createQuery($dql);
 
         //Junta los         parámetros GET de la URL
