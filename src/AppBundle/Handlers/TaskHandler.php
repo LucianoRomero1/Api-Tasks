@@ -206,10 +206,15 @@ class TaskHandler extends Controller{
 
     public function getOrder($request){
         $order      = $request->get('order', null);
-        if(empty($order) || $order == 2){
-            $order  = 'DESC';
+
+        if($order == 0){
+            $order  = "ASC"; 
         }else{
-            $order  = 'ASC';
+            if(empty($order) || $order == 2){
+                $order  = 'DESC';
+            }else{
+                $order  = 'ASC';
+            }
         }
 
         return $order;
