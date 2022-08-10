@@ -217,7 +217,7 @@ class TaskHandler extends Controller{
 
     public function setFilterAndOrder($dql, $filter, $order){
         //Set filter
-        if($filter != null){
+        if($filter != null && $filter != 0){
             //El .= es para concatenarle a lo que ya estaba en el string
             $dql.= "AND t.status = :filter";
         }
