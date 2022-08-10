@@ -191,15 +191,19 @@ class TaskHandler extends Controller{
 
     public function getFilter($request){
         $filter     = $request->get('filter', null);
-        if(!empty($filter)){
-            if($filter == 1){
-                $filter = 'new';
-            }elseif($filter == 2){
-                $filter = 'to do';
-            }else{
-                $filter = 'done';
-            }
-        } 
+        if($filter == 0){
+            $filter = null;
+        }else{
+            if(!empty($filter)){
+                if($filter == 1){
+                    $filter = 'new';
+                }elseif($filter == 2){
+                    $filter = 'to do';
+                }else{
+                    $filter = 'done';
+                }
+            } 
+        }
 
         return $filter;
     }
@@ -222,7 +226,7 @@ class TaskHandler extends Controller{
 
     public function setFilterAndOrder($dql, $filter, $order){
         //Set filter
-        if($filter != null && $filter != 0){
+        if($filter != null){
             //El .= es para concatenarle a lo que ya estaba en el string
             $dql.= "AND t.status = :filter";
         }
