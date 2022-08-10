@@ -121,7 +121,7 @@ class TaskHandler extends Controller{
         $page               = $request->query->getInt('page', 1);
  
         $paginator          = $this->paginator;
-        $items_per_page     = 10;
+        $items_per_page     = 9;
 
         $pagination         = $paginator->paginate($query, $page, $items_per_page);
         $total_items_count  = $pagination->getTotalItemCount();
